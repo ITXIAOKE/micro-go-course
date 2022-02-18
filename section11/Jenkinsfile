@@ -1,6 +1,4 @@
 node {
-
-
     script {
         mysql_addr = '127.0.0.1' // service cluster ip
         redis_addr = '127.0.0.1' // service cluster ip
@@ -42,5 +40,52 @@ node {
         sh "cd section11/user/transport && go test  -args ${user_addr}"
     }
 
+}
 
+//个人总结二者的主要区别有两点：
+//1. 脚本式pipeline只支持stage，像stages 、steps更细致的阶段划分则不支持；
+//2. 当我们需要在脚本中写复杂逻辑的时候，通过脚本式pipeline可以方便的编写脚本，例如需要加入循环的逻辑，使用脚本式pipeline，简单实现如下：
+
+pipeline {
+    agent any
+
+    tools {
+        maven 'apache-maven-3.0.1'
+    }
+
+    environment {
+            CC = 'clang'
+    }
+
+    parameters {
+        string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
+    }
+
+    options {
+        timestamps()
+        ansiColor("xterm")
+    }
+
+    stages {
+        stage("Build") {
+            options {
+                timeout(time: 1, unit: "MINUTES")
+            }
+            steps {
+                sh 'printf "\\e[31mSome code compilation here...\\e[0m\\n"'
+            }
+        }
+
+        stage("Test") {
+            when {
+                environment name: "FOO", value: "bar"
+            }
+            options {
+                timeout(time: 2, unit: "MINUTES")
+            }
+            steps {
+                sh 'printf "\\e[31mSome tests execution here...\\e[0m\\n"'
+            }
+        }
+    }
 }
